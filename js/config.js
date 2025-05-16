@@ -129,6 +129,38 @@ const API_SITES = {
         api: 'https://api.wujinapi.me',
         name: '无尽资源'
     },
+    maotai: {
+        api: 'https://mtzy.me/',
+        name: '茅台资源'
+    },
+    suoni: {
+        api: 'https://suonizy.net/',
+        name: '索尼资源'
+    },
+    hongniu: {
+        api: 'https://www.hongniuzy.com/',
+        name: '红牛资源'
+    },
+    guangsu: {
+        api: 'https://guangsuzy.com/',
+        name: '光速资源'
+    },
+    wujin: {
+        api: 'https://www.xinlangzy.com/',
+        name: '新浪资源'
+    },
+    jinying: {
+        api: 'https://jinyingzy.com/',
+        name: '金鹰资源'
+    },
+    wolong: {
+        api: 'https://wolongzyw.com/',
+        name: '卧龙资源'
+    },
+    Uku: {
+        api: 'https://ukuzy0.com/',
+        name: 'U酷资源'
+    },
 };
 
 // 添加聚合搜索的配置选项
