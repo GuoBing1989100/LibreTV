@@ -22,6 +22,11 @@ const SITE_CONFIG = {
 // API站点配置
 const API_SITES = {
     heimuer: {
+        api: 'http://caiji.dyttzyapi.com',
+        name: '电影天堂资源',
+        detail: 'http://caiji.dyttzyapi.com',
+    },
+    dytt: {
         api: 'https://json.heimuer.xyz',
         name: '黑木耳',
         detail: 'https://heimuer.tv',
@@ -77,10 +82,42 @@ const API_SITES = {
         api: 'https://cj.rycjapi.com',
         name: '如意资源',
     },
+    zuid: {
+        api: 'https://api.zuidapi.com',
+        name: '最大资源'
+    },
     jkun: {
         api: 'https://jkunzyapi.com',
         name: 'jkun资源',
         adult: true
+    },
+    yinghua: {
+        api: 'https://m3u8.apiyhzy.com',
+        name: '樱花资源'
+    },
+    baidu: {
+        api: 'https://api.apibdzy.com',
+        name: '百度云资源'
+    },
+    wwzy: {
+        api: 'https://wwzy.tv',
+        name: '旺旺短剧'
+    },
+    maotai: {
+        api: 'https://mtzy.me/',
+        name: '茅台资源'
+    },
+    ikun: {
+        api: 'https://ikunzyapi.com',
+        name: 'iKun资源'
+    },
+    xiaomaomi: {
+        api: 'https://zy.xiaomaomi.cc',
+        name: '小猫咪资源',
+    },
+    zuid: {
+        api: 'https://api.zuidapi.com',
+        name: '最大资源'
     },
     bwzy: {
         api: 'https://api.bwzym3u8.com',
@@ -108,58 +145,15 @@ const API_SITES = {
         adult: true,
         detail: 'https://hsckzy.vip'
     },
-    zuid: {
-        api: 'https://api.zuidapi.com',
-        name: '最大资源'
-    },
     yutu: {
         api: 'https://yutuzy10.com',
         name: '玉兔资源',
         adult: true
     },
-    yinghua: {
-        api: 'https://m3u8.apiyhzy.com',
-        name: '樱花资源'
-    },
-    baidu: {
-        api: 'https://api.apibdzy.com',
-        name: '百度云资源'
-    },
-    wujin: {
-        api: 'https://api.wujinapi.me',
-        name: '无尽资源'
-    },
-    maotai: {
-        api: 'https://mtzy.me/',
-        name: '茅台资源'
-    },
-    suoni: {
-        api: 'https://suonizy.net/',
-        name: '索尼资源'
-    },
-    hongniu: {
-        api: 'https://www.hongniuzy.com/',
-        name: '红牛资源'
-    },
-    guangsu: {
-        api: 'https://guangsuzy.com/',
-        name: '光速资源'
-    },
-    wujin: {
-        api: 'https://www.xinlangzy.com/',
-        name: '新浪资源'
-    },
-    jinying: {
-        api: 'https://jinyingzy.com/',
-        name: '金鹰资源'
-    },
-    wolong: {
-        api: 'https://wolongzyw.com/',
-        name: '卧龙资源'
-    },
-    Uku: {
-        api: 'https://ukuzy0.com/',
-        name: 'U酷资源'
+    testSource: {
+        api: 'https://www.example.com',
+        name: '空内容测试源',
+        adult: true
     },
 };
 
