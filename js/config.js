@@ -55,11 +55,6 @@ const API_SITES = {
         api: 'https://tyyszy.com',
         name: '天涯资源',
     },
-    ckzy: {
-        api: 'https://www.ckzy1.com',
-        name: 'CK资源',
-        adult: true
-    },
     zy360: {
         api: 'https://360zy.com',
         name: '360资源',
@@ -110,10 +105,6 @@ const API_SITES = {
         api: 'https://m3u8.apiyhzy.com',
         name: '樱花资源'
     },
-    baidu: {
-        api: 'https://api.apibdzy.com',
-        name: '百度云资源'
-    },
     wwzy: {
         api: 'https://wwzy.tv',
         name: '旺旺短剧'
@@ -125,10 +116,6 @@ const API_SITES = {
     ikun: {
         api: 'https://ikunzyapi.com',
         name: 'iKun资源'
-    },
-    xiaomaomi: {
-        api: 'https://zy.xiaomaomi.cc',
-        name: '小猫咪资源',
     },
     zuid: {
         api: 'https://api.zuidapi.com',
