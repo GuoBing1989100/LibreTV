@@ -124,6 +124,21 @@ const API_SITES = {
         name: 'souav资源',
         adult: true
     },
+    fengchao: {
+        api: 'https://api.fczy888.me/api.php/provide/vod',
+        name: '蜂巢资源',
+        adult: true
+    },
+    kuaiche: {
+        api: 'https://api.fczy888.me/api.php/provide/vod',
+        name: '快车资源',
+        adult: true
+    },
+    subo: {
+        api: 'https://subocj.com/api.php/provide/vod',
+        name: '速播资源',
+        adult: true
+    },
     testSource: {
         api: 'https://www.example.com',
         name: '空内容测试源',
