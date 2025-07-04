@@ -125,17 +125,17 @@ const API_SITES = {
         adult: true
     },
     fengchao: {
-        api: 'https://api.fczy888.me/api.php/provide/vod',
+        api: 'https://api.fczy888.me',
         name: '蜂巢资源',
         adult: true
     },
     kuaiche: {
-        api: 'https://api.fczy888.me/api.php/provide/vod',
+        api: 'https://api.fczy888.me',
         name: '快车资源',
         adult: true
     },
     subo: {
-        api: 'https://subocj.com/api.php/provide/vod',
+        api: 'https://subocj.com',
         name: '速播资源',
         adult: true
     },
