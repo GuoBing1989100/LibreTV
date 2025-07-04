@@ -31,6 +31,21 @@ const API_SITES = {
         name: '黑木耳',
         detail: 'https://heimuer.tv',
     },
+    fengchao: {
+        api: 'https://api.fczy888.me',
+        name: '蜂巢资源',
+        adult: true
+    },
+    kuaiche: {
+        api: 'https://api.fczy888.me',
+        name: '快车资源',
+        adult: true
+    },
+    subo: {
+        api: 'https://subocj.com',
+        name: '速播资源',
+        adult: true
+    },
     ffzy: {
         api: 'http://ffzy5.tv',
         name: '非凡影视',
@@ -122,21 +137,6 @@ const API_SITES = {
     souav: {
         api: 'https://api.souavzy.vip',
         name: 'souav资源',
-        adult: true
-    },
-    fengchao: {
-        api: 'https://api.fczy888.me',
-        name: '蜂巢资源',
-        adult: true
-    },
-    kuaiche: {
-        api: 'https://api.fczy888.me',
-        name: '快车资源',
-        adult: true
-    },
-    subo: {
-        api: 'https://subocj.com',
-        name: '速播资源',
         adult: true
     },
     testSource: {
