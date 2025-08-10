@@ -36,15 +36,9 @@ const API_SITES = {
         name: '蜂巢资源',
         adult: true
     },
-    kuaiche: {
-        api: 'https://api.fczy888.me',
-        name: '快车资源',
-        adult: true
-    },
     subo: {
         api: 'https://subocj.com',
         name: '速播资源',
-        adult: true
     },
     ffzy: {
         api: 'http://ffzy5.tv',
@@ -62,10 +56,6 @@ const API_SITES = {
     wolong: {
         api: 'https://wolongzyw.com',
         name: '卧龙资源',
-    },
-    hwba: {
-        api: 'https://cjhwba.com',
-        name: '华为吧资源',
     },
     jisu: {
         api: 'https://jszyapi.com',
@@ -101,10 +91,6 @@ const API_SITES = {
         name: 'jkun资源',
         adult: true
     },
-    yinghua: {
-        api: 'https://m3u8.apiyhzy.com',
-        name: '樱花资源'
-    },
     wwzy: {
         api: 'https://wwzy.tv',
         name: '旺旺短剧'
@@ -131,7 +117,7 @@ const API_SITES = {
         name: '空内容测试源',
         adult: true
     },
-        // 下面是一些成人内容的API源，默认隐藏，使用本项目浏览黄色内容违背项目初衷
+    // 下面是一些成人内容的API源，默认隐藏，使用本项目浏览黄色内容违背项目初衷
     // 互联网上传播的色情内容将人彻底客体化、工具化，是性别解放和人类平等道路上的巨大障碍。
     // 这些黄色影片是资本主义父权制压迫的最恶毒体现，它将暴力和屈辱商品化，践踏人的尊严，对受害者造成无法弥愈的伤害，并毒害社会关系。
     // 资本为了利润，不惜将最卑劣的剥削（包括对受害者和表演者的剥削）和暴力商品化，
@@ -257,7 +243,7 @@ const ERROR_MESSAGES = {
 const SECURITY_CONFIG = {
     enableXSSProtection: true,  // 是否启用XSS保护
     sanitizeUrls: true,         // 是否清理URL
-    maxQueryLength: 100,        // 最大搜索长度
+    maxQueryLength: 500,        // 最大搜索长度
     // allowedApiDomains 不再需要，因为所有请求都通过内部代理
 };
 
