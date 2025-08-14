@@ -1,80 +1,62 @@
-name: 上游同步并部署到Cloudflare
+name: 独立部署到Cloudflare
+
+on:
+  push:
+    branches:
+      - main  # 只在main分支推送时触发
+  workflow_dispatch:  # 支持手动触发
 
 permissions:
   contents: read
   deployments: write
 
-on:
-  schedule:
-    - cron: "0 4 * * *"  # 每天UTC时间04:00执行
-  workflow_dispatch:      # 支持手动触发
-
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  PROJECT_NAME: "你的项目名称"  # 替换为实际项目名
+  PROJECT_NAME: "LibreTV"  # 替换为您的实际项目名
 
 jobs:
-  sync_and_deploy:
-    name: 同步上游并部署
+  build_and_deploy:
+    name: 构建并部署
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.fork }}
 
     steps:
-      # 步骤1: 检出仓库
-      - name: 检出代码
+      # 步骤1: 检出代码
+      - name: 检出仓库
         uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
 
-      # 步骤2: 添加上游源
-      - name: 添加上游仓库
-        run: |
-          git remote add upstream https://github.com/LibreSpark/LibreTV.git
-          git fetch upstream main
-
-      # 步骤3: 合并更新 (仅快进)
-      - name: 合并上游变更
-        run: |
-          git checkout main
-          git merge --ff-only upstream/main || echo "合并失败，需要手动处理"
-
-      # 步骤4: 设置Node.js环境
+      # 步骤2: 设置Node.js环境
       - name: 设置Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      # 步骤5: 安装依赖并构建 (根据实际项目调整)
+      # 步骤3: 安装依赖
       - name: 安装依赖
-        run: npm ci --prefer-offline
-
+        run: |
+          npm ci --prefer-offline
+          
+      # 步骤4: 构建项目
       - name: 构建项目
-        run: npm run build  # 替换为实际构建命令
+        run: npm run build  # 替换为您的实际构建命令
         env:
           NODE_ENV: production
 
-      # 步骤6: 部署到Cloudflare
-      - name: 部署到Cloudflare Pages
+      # 步骤5: 部署到Cloudflare Pages
+      - name: 部署到Cloudflare
         uses: cloudflare/pages-action@1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: ${{ env.PROJECT_NAME }}
-          directory: ./dist  # 替换为实际构建输出目录
+          directory: ./dist  # 替换为您的构建输出目录
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
-      # 步骤7: 失败处理
-      - name: 错误通知
-        if: failure()
-        run: |
-          echo "::error::部署失败! 错误类型: ${{ job.status }}"
-          echo "可能原因:"
-          echo "1. Cloudflare凭据无效"
-          echo "2. 构建过程出错"
-          echo "3. 上游合并冲突"
-          echo "解决方案:"
-          echo "- 检查secrets中的CLOUDFLARE_ACCOUNT_ID和CLOUDFLARE_API_TOKEN"
-          echo "- 查看构建日志定位错误"
-          echo "- 手动解决合并冲突后重新运行"
+          branch: main  # 指定部署分支
+          
+      # 步骤6: 清理构建产物 (可选)
+      - name: 清理工作区
+        if: always()
+        run: rm -rf node_modules dist .cache
