@@ -1,0 +1,44 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # 可选：添加构建步骤（如果项目需要）
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      #
+      # - name: Install dependencies
+      #   run: npm install
+      #
+      # - name: Build project
+      #   run: npm run build
+      
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: "libretvgb"  # 替换为您的实际项目名
+          directory: '.'  # 如果是构建项目，改为构建目录如 'dist'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Verify deployment
+        run: |
+          echo "部署成功！访问地址：https://libretvgb.pages.dev"
+          # 添加自定义域名检查（可选）
+          curl -I "https://您的自定义域名"
