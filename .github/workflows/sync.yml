@@ -32,6 +32,6 @@ jobs:
           # 关键修复：直接从 secrets 获取凭证
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: "libretvgb"  # 替换为实际名称
+          projectName: "LibreTV"  # 替换为实际名称
           directory: '.'  # 部署整个仓库
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
