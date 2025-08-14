@@ -1,39 +1,80 @@
-name: Upstream Sync
+name: 上游同步并部署到Cloudflare
 
 permissions:
-  contents: write
+  contents: read
+  deployments: write
 
 on:
   schedule:
-    - cron: "0 4 * * *" # At 04:00, every day
-  workflow_dispatch:
+    - cron: "0 4 * * *"  # 每天UTC时间04:00执行
+  workflow_dispatch:      # 支持手动触发
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  PROJECT_NAME: "你的项目名称"  # 替换为实际项目名
 
 jobs:
-  sync_latest_from_upstream:
-    name: Sync latest commits from upstream repo
+  sync_and_deploy:
+    name: 同步上游并部署
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.fork }}
 
     steps:
-      # Step 1: run a standard checkout action
-      - name: Checkout target repo
-        uses: actions/checkout@v3
-
-      # Step 2: run the sync action
-      - name: Sync upstream changes
-        id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+      # 步骤1: 检出仓库
+      - name: 检出代码
+        uses: actions/checkout@v4
         with:
-          upstream_sync_repo: LibreSpark/LibreTV
-          upstream_sync_branch: main
-          target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, no need to set
+          ref: main
+          fetch-depth: 0
 
-          # Set test_mode true to run tests instead of the true action!!
-          test_mode: false
+      # 步骤2: 添加上游源
+      - name: 添加上游仓库
+        run: |
+          git remote add upstream https://github.com/LibreSpark/LibreTV.git
+          git fetch upstream main
 
-      - name: Sync check
+      # 步骤3: 合并更新 (仅快进)
+      - name: 合并上游变更
+        run: |
+          git checkout main
+          git merge --ff-only upstream/main || echo "合并失败，需要手动处理"
+
+      # 步骤4: 设置Node.js环境
+      - name: 设置Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 步骤5: 安装依赖并构建 (根据实际项目调整)
+      - name: 安装依赖
+        run: npm ci --prefer-offline
+
+      - name: 构建项目
+        run: npm run build  # 替换为实际构建命令
+        env:
+          NODE_ENV: production
+
+      # 步骤6: 部署到Cloudflare
+      - name: 部署到Cloudflare Pages
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ env.PROJECT_NAME }}
+          directory: ./dist  # 替换为实际构建输出目录
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      # 步骤7: 失败处理
+      - name: 错误通知
         if: failure()
         run: |
-          echo "[Error] Due to a change in the workflow file of the upstream repository, GitHub has automatically suspended the scheduled automatic update. You need to manually sync your fork."
-          exit 1
+          echo "::error::部署失败! 错误类型: ${{ job.status }}"
+          echo "可能原因:"
+          echo "1. Cloudflare凭据无效"
+          echo "2. 构建过程出错"
+          echo "3. 上游合并冲突"
+          echo "解决方案:"
+          echo "- 检查secrets中的CLOUDFLARE_ACCOUNT_ID和CLOUDFLARE_API_TOKEN"
+          echo "- 查看构建日志定位错误"
+          echo "- 手动解决合并冲突后重新运行"
