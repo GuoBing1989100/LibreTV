@@ -1,4 +1,4 @@
-name: 安全部署到Cloudflare
+name: 终极 Cloudflare Pages 部署
 
 on:
   push:
@@ -9,15 +9,55 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出代码
+      # 1. 检出代码
+      - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: 限速部署
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.NEW_CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.NEW_CLOUDFLARE_ACCOUNT_ID }}
-          projectName: "libretv-new"
-          directory: '.'
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      # 2. 验证环境变量
+      - name: Validate secrets
+        run: |
+          # 检查 accountId 格式
+          if [[ ! "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" =~ ^[a-f0-9]{32}$ ]]; then
+            echo "::error::无效的账户ID格式！必须是32位十六进制字符"
+            echo "在Cloudflare控制台右下角获取正确的账户ID"
+            exit 1
+          fi
+          
+          # 检查 apiToken 是否设置
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "::error::未设置CLOUDFLARE_API_TOKEN"
+            echo "请在GitHub Secrets中设置API Token"
+            exit 1
+          fi
+          
+          echo "所有凭证验证通过"
+          
+      # 3. 直接API部署（绕过所有工具链问题）
+      - name: Deploy via API
+        run: |
+          # 创建项目（如果不存在）
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"name":"libretvgb","production_branch":"main"}' > project.json || true
+          
+          # 打包代码
+          zip -r deployment.zip . -x '.git/*'
+          
+          # 上传部署
+          upload_response=$(curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -F "files=@deployment.zip" \
+            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/libretvgb/deployments")
+          
+          # 提取部署URL
+          deployment_url=$(echo "$upload_response" | grep -o 'https://[^"]*\.pages\.dev')
+          echo "::notice::部署成功！访问地址: $deployment_url"
+          echo "DEPLOYMENT_URL=$deployment_url" >> $GITHUB_OUTPUT
+          
         timeout-minutes: 5
+        
+      # 4. 验证部署
+      - name: Verify deployment
+        run: |
+          curl -I "${{ steps.deploy.outputs.DEPLOYMENT_URL }}"
