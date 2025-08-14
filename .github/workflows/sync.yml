@@ -1,4 +1,4 @@
-name: 100%有效部署到Cloudflare
+name: 安全部署到Cloudflare
 
 on:
   push:
@@ -12,24 +12,12 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         
-      - name: 安装Wrangler
-        run: npm install -g wrangler@3.22.0  # 使用稳定版本
-        
-      - name: 创建项目并部署
-        run: |
-          # 确保项目存在（不存在则创建）
-          wrangler pages project create libretvgb --production-branch=main || true
-          
-          # 强制部署（跳过所有检查）
-          wrangler pages deploy . \
-            --project-name=libretvgb \
-            --branch=main \
-            --commit-dirty=true \
-            --skip-caching
-          
-          # 获取部署URL
-          echo "部署成功！访问地址："
-          wrangler pages deployment list --project-name=libretvgb | grep -Eo 'https://[^ ]*'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: 限速部署
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.NEW_CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.NEW_CLOUDFLARE_ACCOUNT_ID }}
+          projectName: "libretv-new"
+          directory: '.'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        timeout-minutes: 5
