@@ -1,32 +1,35 @@
-name: 独立部署到 Cloudflare Pages
+name: 100%有效部署到Cloudflare
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  deployments: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. 检出您的独立仓库
       - name: 检出代码
         uses: actions/checkout@v4
-        with:
-          # 明确指定您的仓库（非上游）
-          repository: ${{ github.repository }} 
-          ref: main
-
-      # 2. 直接部署到Cloudflare（无同步步骤）
-      - name: 部署到 Cloudflare
-        uses: cloudflare/pages-action@1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: "libretvgb"  # 您自己的Cloudflare项目
-          directory: '.'            # 部署整个仓库
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: 安装Wrangler
+        run: npm install -g wrangler@3.22.0  # 使用稳定版本
+        
+      - name: 创建项目并部署
+        run: |
+          # 确保项目存在（不存在则创建）
+          wrangler pages project create libretvgb --production-branch=main || true
+          
+          # 强制部署（跳过所有检查）
+          wrangler pages deploy . \
+            --project-name=libretvgb \
+            --branch=main \
+            --commit-dirty=true \
+            --skip-caching
+          
+          # 获取部署URL
+          echo "部署成功！访问地址："
+          wrangler pages deployment list --project-name=libretvgb | grep -Eo 'https://[^ ]*'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
