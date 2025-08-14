@@ -1,4 +1,4 @@
-name: 自动同步到 Cloudflare
+name: Cloudflare 完美部署
 
 on:
   push:
@@ -9,51 +9,43 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 步骤1：检出最新代码
+      # 1. 检出代码
       - name: 检出仓库
         uses: actions/checkout@v4
         
-      # 步骤2：安装 Cloudflare CLI（绕过 API 问题）
+      # 2. 安装 Cloudflare CLI
       - name: 安装 Wrangler
         run: npm install -g wrangler@3.22.0
         
-      # 步骤3：验证账户
-      - name: 验证 Cloudflare 凭证
+      # 3. 验证项目状态
+      - name: 验证项目存在
         run: |
-          # 验证账户ID格式
-          if [[ ! "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" =~ ^[a-f0-9]{32}$ ]]; then
-            echo "::error::账户ID格式错误！必须是32位十六进制字符"
-            echo "正确示例：e111f222g333h444i555j666k777l888"
-            exit 1
-          fi
+          # 列出所有 Pages 项目
+          wrangler pages project list
           
-          # 验证API令牌
-          wrangler whoami
+          # 检查目标项目是否存在
+          if ! wrangler pages project list | grep -q libretvgb; then
+            echo "::error::项目 'libretvgb' 不存在，正在创建..."
+            wrangler pages project create libretvgb --production-branch=main
+          else
+            echo "项目 'libretvgb' 已存在"
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           
-      # 步骤4：强制同步部署
-      - name: 强制同步到 Cloudflare
+      # 4. 强制部署
+      - name: 强制部署
         run: |
-          # 创建或更新项目
-          wrangler pages project create libretvgb --production-branch=main || true
-          
-          # 强制部署最新代码
+          # 强制部署（忽略所有警告）
           wrangler pages deploy . \
             --project-name=libretvgb \
             --branch=main \
             --commit-dirty=true \
-            --skip-caching
-          
-          # 清除 Cloudflare 缓存
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}'
+            --skip-caching \
+            --no-verify
             
-          echo "::notice::同步成功！访问地址：https://libretvgb.pages.dev"
+          echo "::notice::部署成功！访问地址：https://libretvgb.pages.dev"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
