@@ -1,51 +1,39 @@
-name: Cloudflare 完美部署
+name: Upstream Sync
+
+permissions:
+  contents: write
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: "0 4 * * *" # At 04:00, every day
   workflow_dispatch:
 
 jobs:
-  deploy:
+  sync_latest_from_upstream:
+    name: Sync latest commits from upstream repo
     runs-on: ubuntu-latest
+    if: ${{ github.event.repository.fork }}
+
     steps:
-      # 1. 检出代码
-      - name: 检出仓库
-        uses: actions/checkout@v4
-        
-      # 2. 安装 Cloudflare CLI
-      - name: 安装 Wrangler
-        run: npm install -g wrangler@3.22.0
-        
-      # 3. 验证项目状态
-      - name: 验证项目存在
+      # Step 1: run a standard checkout action
+      - name: Checkout target repo
+        uses: actions/checkout@v3
+
+      # Step 2: run the sync action
+      - name: Sync upstream changes
+        id: sync
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          upstream_sync_repo: LibreSpark/LibreTV
+          upstream_sync_branch: main
+          target_sync_branch: main
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, no need to set
+
+          # Set test_mode true to run tests instead of the true action!!
+          test_mode: false
+
+      - name: Sync check
+        if: failure()
         run: |
-          # 列出所有 Pages 项目
-          wrangler pages project list
-          
-          # 检查目标项目是否存在
-          if ! wrangler pages project list | grep -q libretvgb; then
-            echo "::error::项目 'libretvgb' 不存在，正在创建..."
-            wrangler pages project create libretvgb --production-branch=main
-          else
-            echo "项目 'libretvgb' 已存在"
-          fi
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          
-      # 4. 强制部署
-      - name: 强制部署
-        run: |
-          # 强制部署（忽略所有警告）
-          wrangler pages deploy . \
-            --project-name=libretvgb \
-            --branch=main \
-            --commit-dirty=true \
-            --skip-caching \
-            --no-verify
-            
-          echo "::notice::部署成功！访问地址：https://libretvgb.pages.dev"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          echo "[Error] Due to a change in the workflow file of the upstream repository, GitHub has automatically suspended the scheduled automatic update. You need to manually sync your fork."
+          exit 1
