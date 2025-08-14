@@ -1,4 +1,4 @@
-name: 100% 成功部署方案
+name: 自动同步到 Cloudflare
 
 on:
   push:
@@ -9,48 +9,51 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出代码
+      # 步骤1：检出最新代码
+      - name: 检出仓库
         uses: actions/checkout@v4
         
-      - name: 上传到 GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
-          force_orphan: true
-          enable_jekyll: false
-          
-      - name: 设置 Cloudflare CDN 缓存
+      # 步骤2：安装 Cloudflare CLI（绕过 API 问题）
+      - name: 安装 Wrangler
+        run: npm install -g wrangler@3.22.0
+        
+      # 步骤3：验证账户
+      - name: 验证 Cloudflare 凭证
         run: |
-          # 使用 Cloudflare Workers 缓存 GitHub Pages
-          cat > worker.js << 'EOF'
-          addEventListener('fetch', event => {
-            event.respondWith(handleRequest(event.request))
-          })
+          # 验证账户ID格式
+          if [[ ! "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" =~ ^[a-f0-9]{32}$ ]]; then
+            echo "::error::账户ID格式错误！必须是32位十六进制字符"
+            echo "正确示例：e111f222g333h444i555j666k777l888"
+            exit 1
+          fi
           
-          async function handleRequest(request) {
-            const url = new URL(request.url);
-            // 替换为您的 GitHub Pages URL
-            url.hostname = 'yourusername.github.io';
-            
-            const newRequest = new Request(url, request);
-            newRequest.headers.set('Host', url.hostname);
-            
-            const response = await fetch(newRequest);
-            return response;
-          }
-          EOF
+          # 验证API令牌
+          wrangler whoami
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           
-          # 部署 Worker 作为代理
-          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/scripts/libretvgb" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/javascript" \
-            --data-binary "@worker.js"
-            
-          # 设置 Worker 路由
-          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/routes" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+      # 步骤4：强制同步部署
+      - name: 强制同步到 Cloudflare
+        run: |
+          # 创建或更新项目
+          wrangler pages project create libretvgb --production-branch=main || true
+          
+          # 强制部署最新代码
+          wrangler pages deploy . \
+            --project-name=libretvgb \
+            --branch=main \
+            --commit-dirty=true \
+            --skip-caching
+          
+          # 清除 Cloudflare 缓存
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
             -H "Content-Type: application/json" \
-            --data '{"pattern":"libretvgb.pages.dev/*", "script":"libretvgb"}'
+            --data '{"purge_everything":true}'
             
-          echo "部署成功！访问地址：https://libretvgb.pages.dev"
+          echo "::notice::同步成功！访问地址：https://libretvgb.pages.dev"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
