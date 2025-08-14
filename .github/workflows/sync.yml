@@ -1,4 +1,4 @@
-name: 直接部署到Cloudflare
+name: 部署到Cloudflare Pages
 
 on:
   push:
@@ -10,27 +10,28 @@ permissions:
   contents: read
   deployments: write
 
-env:
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  PROJECT_NAME: "LibreTV"
-
 jobs:
   deploy:
-    name: 直接部署
+    name: 部署
     runs-on: ubuntu-latest
 
     steps:
-      # 步骤1: 检出代码
-      - name: 检出仓库
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      # 步骤2: 直接部署整个仓库
-      - name: 部署到Cloudflare
+      # 添加 Node.js 设置步骤（即使不需要构建）
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 部署到 Cloudflare
+      - name: 部署到 Cloudflare Pages
         uses: cloudflare/pages-action@1
         with:
+          # 关键修复：直接从 secrets 获取凭证
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ env.PROJECT_NAME }}
+          projectName: "您的项目名称"  # 替换为实际名称
           directory: '.'  # 部署整个仓库
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
